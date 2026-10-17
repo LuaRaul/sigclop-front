@@ -3,8 +3,9 @@ export const resourceConfigs = {
     title: 'Pedidos Internos',
     endpoint: '/internal-requests',
     action: 'Novo Pedido',
-    columns: ['Nº Pedido', 'Sector', 'Data', 'Prioridade', 'Estado', 'Responsavel'],
+    columns: ['Nº Pedido', 'Tipo de pedido', 'Sector', 'Data', 'Prioridade', 'Estado', 'Responsável'],
     fields: [
+      { key: 'request_type', label: 'Tipo de pedido', type: 'select', options: [{ value: 'vestuario', label: 'Vestuário' }, { value: 'higiene', label: 'Artigos de higiene' }, { value: 'meios_oficina', label: 'Meios de oficina' }], default: 'higiene', required: true },
       { key: 'department_id', label: 'Sector', type: 'department', required: true },
       { key: 'assigned_approver_id', label: 'Responsavel pela aprovacao', type: 'approver', required: true },
       { key: 'priority', label: 'Prioridade', type: 'select', options: ['baixa', 'normal', 'alta', 'urgente'], default: 'normal' },
@@ -13,6 +14,7 @@ export const resourceConfigs = {
       { key: 'quantity_requested', label: 'Quantidade', type: 'number', default: 1, required: true },
     ],
     toPayload: (form) => ({
+      request_type: form.request_type,
       priority: form.priority,
       department_id: Number(form.department_id),
       assigned_approver_id: Number(form.assigned_approver_id),
@@ -21,6 +23,7 @@ export const resourceConfigs = {
     }),
     mapRows: (item) => [
       item.request_number,
+      item.request_type_label || ({ vestuario: 'Vestuário', higiene: 'Artigos de higiene', meios_oficina: 'Meios de oficina' }[item.request_type] || item.request_type || '-'),
       item.department?.name || '-',
       item.submitted_at || item.created_at || '-',
       item.priority,
@@ -126,7 +129,7 @@ export const resourceConfigs = {
     fields: [
       { key: 'name', label: 'Nome', required: true },
       { key: 'email', label: 'Email', type: 'email', required: true },
-      { key: 'role', label: 'Funcao', type: 'select', options: ['administrador', 'director', 'logistica', 'armazem', 'solicitante', 'auditor'], default: 'solicitante' },
+      { key: 'role', label: 'Funcao', type: 'select', options: ['administrador', 'director_geral', 'director', 'funcionario', 'funcionario_armazem'], default: 'solicitante' },
       { key: 'department_id', label: 'Sector', type: 'department' },
       { key: 'password', label: 'Senha', type: 'password', default: 'password', required: true },
     ],

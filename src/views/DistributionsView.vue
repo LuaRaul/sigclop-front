@@ -11,6 +11,10 @@ const departments = ref([])
 const products = ref([])
 
 const selected = ref(null)
+const page = ref(1)
+const pageSize = ref(10)
+const pageCount = computed(() => Math.max(1, Math.ceil(distributions.value.length / pageSize.value)))
+const pagedDistributions = computed(() => distributions.value.slice((page.value - 1) * pageSize.value, page.value * pageSize.value))
 const loading = ref(false)
 const loadingRequests = ref(false)
 const saving = ref(false)
@@ -342,11 +346,8 @@ onMounted(load)
       <p v-if="error" class="form-error">{{ error }}</p>
       <p v-if="success" class="success-message">{{ success }}</p>
 
-      <form
-        v-if="showCreate"
-        class="resource-form"
-        @submit.prevent="createDistribution"
-      >
+      <Teleport to="body"><div v-if="showCreate" class="modal-backdrop" @click.self="closeCreate"><section class="request-modal distribution-modal" role="dialog" aria-modal="true" aria-labelledby="distribution-modal-title"><header class="request-modal-header"><div class="request-modal-heading-icon">＋</div><div class="request-modal-heading-copy"><h2 id="distribution-modal-title">Nova distribuição</h2><p>Seleccione um pedido aprovado e confirme os materiais a distribuir.</p></div><button class="modal-close-button" type="button" :disabled="saving" @click="closeCreate">×</button></header>
+      <form class="resource-form request-modal-form" @submit.prevent="createDistribution">
         <label class="wide">
           Pedido aprovado
           <select
@@ -435,24 +436,8 @@ onMounted(load)
           />
         </label>
 
-        <div class="form-actions">
-          <button
-            type="button"
-            class="ghost-button"
-            @click="closeCreate"
-          >
-            Cancelar
-          </button>
-
-          <button
-            type="submit"
-            class="primary-button"
-            :disabled="saving"
-          >
-            {{ saving ? 'A criar...' : 'Criar distribuição' }}
-          </button>
-        </div>
-      </form>
+        <div class="form-actions"><button type="button" class="ghost-button" @click="closeCreate">Cancelar</button><button type="submit" class="primary-button" :disabled="saving">{{ saving ? 'A criar...' : 'Criar distribuição' }}</button></div>
+      </form></section></div></Teleport>
 
       <p v-if="loading" class="loading-line">
         A carregar distribuições...
@@ -474,7 +459,7 @@ onMounted(load)
         </div>
 
         <div
-          v-for="distribution in distributions"
+          v-for="distribution in pagedDistributions"
           :key="distribution.id"
           class="module-row"
           style="grid-template-columns: repeat(8, minmax(0, 1fr));"
@@ -590,13 +575,9 @@ onMounted(load)
           </span>
         </div>
 
-        <p
-          v-if="!loading && distributions.length === 0"
-          class="empty-line"
-        >
-          Sem distribuições.
-        </p>
+        <p v-if="!loading && distributions.length === 0" class="empty-line">Sem distribuições.</p>
       </div>
+      <div v-if="distributions.length" class="pagination-bar"><span>{{ (page - 1) * pageSize + 1 }}–{{ Math.min(page * pageSize, distributions.length) }} de {{ distributions.length }} distribuições</span><div class="pagination-controls"><label>Linhas <select v-model.number="pageSize" @change="page = 1"><option :value="10">10</option><option :value="25">25</option><option :value="50">50</option></select></label><button class="ghost-button" :disabled="page <= 1" @click="page--">Anterior</button><strong>{{ page }} / {{ pageCount }}</strong><button class="ghost-button" :disabled="page >= pageCount" @click="page++">Seguinte</button></div></div>
     </article>
 
     <article

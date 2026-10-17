@@ -9,6 +9,7 @@ import LoginView from '../views/LoginView.vue'
 import ModulesView from '../views/ModulesView.vue'
 import ApprovalsView from '../views/ApprovalsView.vue'
 import ProfileView from '../views/ProfileView.vue'
+import AccessManagementView from '../views/AccessManagementView.vue'
 
 import { useAuthStore } from '../stores/auth'
 
@@ -133,6 +134,13 @@ const router = createRouter({
       },
     },
 
+    {
+      path: '/acessos',
+      name: 'access-management',
+      component: AccessManagementView,
+      meta: { requiresAuth: true, systemAdminOnly: true },
+    },
+
     /*
     |--------------------------------------------------------------------------
     | Perfil
@@ -189,7 +197,7 @@ const router = createRouter({
 */
 
 const modulePermissions = {
-  sectores: 'departamentos.visualizar',
+  sectores: 'sectores.visualizar',
   relatorios: 'relatorios.visualizar',
   utilizadores: 'utilizadores.visualizar',
   auditoria: 'auditoria.visualizar',
@@ -235,6 +243,10 @@ router.beforeEach((to) => {
         redirect: to.fullPath,
       },
     }
+  }
+
+  if (to.meta.systemAdminOnly && String(auth.userEmail || '').toLowerCase() !== 'admin@sigclop.local') {
+    return handleUnauthorized(to)
   }
 
   /*

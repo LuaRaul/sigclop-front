@@ -13,6 +13,7 @@ import {
   ShieldCheck,
   Truck,
   Users,
+  KeyRound,
 } from 'lucide-vue-next'
 
 import { useAuthStore } from '../../stores/auth'
@@ -34,7 +35,7 @@ const items = [
     to: '/',
     label: 'Dashboard',
     icon: Gauge,
-    permission: 'dashboard.nacional',
+    permissions: ['dashboard.nacional', 'dashboard.regional', 'dashboard.local'],
   },
 
   {
@@ -79,7 +80,7 @@ const items = [
     to: '/sectores',
     label: 'Sectores',
     icon: Users,
-    permission: 'departamentos.visualizar',
+    permission: 'sectores.visualizar',
   },
 
   {
@@ -104,6 +105,13 @@ const items = [
   },
 
   {
+    to: '/acessos',
+    label: 'Perfis e Permissões',
+    icon: KeyRound,
+    adminOnly: true,
+  },
+
+  {
     to: '/configuracoes',
     label: 'Configurações',
     icon: Settings,
@@ -119,6 +127,10 @@ const items = [
 
 const visibleItems = computed(() => {
   return items.filter((item) => {
+
+    if (item.adminOnly) {
+      return String(auth.userEmail || '').toLowerCase() === 'admin@sigclop.local'
+    }
 
     /*
     | Uma permission
